@@ -1,0 +1,101 @@
+trigger:
+  branches:
+    include:
+      - main
+
+pool:
+  vmImage: ubuntu-latest
+
+variables:
+  terraformVersion: '1.7.5'
+
+stages:
+  - stage: Validate
+    displayName: Format and validate
+    jobs:
+      - job: TerraformValidate
+        steps:
+          - task: TerraformInstaller@1
+            inputs:
+              terraformVersion: $(terraformVersion)
+
+          - script: terraform init -backend=false
+            displayName: Init without backend
+
+          - script: terraform fmt -check -recursive
+            displayName: Check formatting
+
+          - script: terraform validate
+            displayName: Validate configuration
+
+  - stage: Plan
+    displayName: Plan
+    dependsOn: Validate
+    jobs:
+      - job: TerraformPlan
+        steps:
+          - task: TerraformInstaller@1
+            inputs:
+              terraformVersion: $(terraformVersion)
+
+          - script: terraform init
+            displayName: Init with backend
+            env:
+              ARM_CLIENT_ID: $(ARM_CLIENT_ID)
+              ARM_CLIENT_SECRET: $(ARM_CLIENT_SECRET)
+              ARM_SUBSCRIPTION_ID: $(ARM_SUBSCRIPTION_ID)
+              ARM_TENANT_ID: $(ARM_TENANT_ID)
+
+          - script: terraform plan -out=tfplan
+            displayName: Generate plan
+            env:
+              ARM_CLIENT_ID: $(ARM_CLIENT_ID)
+              ARM_CLIENT_SECRET: $(ARM_CLIENT_SECRET)
+              ARM_SUBSCRIPTION_ID: $(ARM_SUBSCRIPTION_ID)
+              ARM_TENANT_ID: $(ARM_TENANT_ID)
+
+          - publish: tfplan
+            artifact: tfplan
+
+  - stage: Apply
+    displayName: Apply
+    dependsOn: Plan
+    condition: eq(variables['Build.SourceBranch'], 'refs/heads/main')
+    jobs:
+      - deployment: TerraformApply
+        displayName: Apply plan
+        environment: production
+        strategy:
+          runOnce:
+            deploy:
+              steps:
+                - task: TerraformInstaller@1
+                  inputs:
+                    terraformVersion: $(terraformVersion)
+
+                - download: current
+                  artifact: tfplan
+
+                - script: terraform init
+                  displayName: Init with backend
+                  env:
+                    ARM_CLIENT_ID: $(ARM_CLIENT_ID)
+                    ARM_CLIENT_SECRET: $(ARM_CLIENT_SECRET)
+                    ARM_SUBSCRIPTION_ID: $(ARM_SUBSCRIPTION_ID)
+                    ARM_TENANT_ID: $(ARM_TENANT_ID)
+
+                - script: terraform apply -auto-approve $(Pipeline.Workspace)/tfplan/tfplan
+                  displayName: Apply
+                  env:
+                    ARM_CLIENT_ID: $(ARM_CLIENT_ID)
+                    ARM_CLIENT_SECRET: $(ARM_CLIENT_SECRET)
+                    ARM_SUBSCRIPTION_ID: $(ARM_SUBSCRIPTION_ID)
+                    ARM_TENANT_ID: $(ARM_TENANT_ID)
+
+# Notes for the interview:
+# - The Apply stage only runs on main and sits behind a "production"
+#   environment, which in Azure DevOps can require manual approval.
+# - ARM_* values are pipeline secret variables or a variable group backed
+#   by Key Vault, never committed to this file.
+# - The plan artifact is generated once in the Plan stage and reused in
+#   Apply, so what gets approved is exactly what gets applied.
