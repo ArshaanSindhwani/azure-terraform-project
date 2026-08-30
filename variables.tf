@@ -27,9 +27,3 @@ variable "app_subnet_prefix" {
   type        = list(string)
   default     = ["10.0.1.0/24"]
 }
-
-variable "app_service_sku" {
-  description = "SKU for the App Service plan"
-  type        = string
-  default     = "B1"
-}
