@@ -25,5 +25,12 @@ terraform {
 }
 
 provider "azurerm" {
-  features {}
+  features {
+    resource_group {
+      # Without this, "terraform destroy" refuses to remove a resource
+      # group if it still contains anything Terraform doesn't recognise
+      # as fully deleted yet, which is what caused the stuck destroy.
+      prevent_deletion_if_contains_resources = false
+    }
+  }
 }
