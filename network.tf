@@ -5,20 +5,17 @@ resource "azurerm_virtual_network" "main" {
   resource_group_name = azurerm_resource_group.main.name
 }
 
+# This subnet is not required by the Container App Environment used in
+# compute.tf, a consumption-plan environment has no VNet dependency.
+# It is kept here to demonstrate network segmentation and NSG design,
+# and as the natural next step (VNet-integrated Container App
+# Environment, delegation to Microsoft.App/environments) if you want
+# to extend the project later.
 resource "azurerm_subnet" "app" {
   name                 = "snet-app"
   resource_group_name  = azurerm_resource_group.main.name
   virtual_network_name = azurerm_virtual_network.main.name
   address_prefixes     = var.app_subnet_prefix
-
-  delegation {
-    name = "app-service-delegation"
-
-    service_delegation {
-      name    = "Microsoft.Web/serverFarms"
-      actions = ["Microsoft.Network/virtualNetworks/subnets/action"]
-    }
-  }
 }
 
 resource "azurerm_network_security_group" "app" {
