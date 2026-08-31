@@ -25,7 +25,7 @@ GitHub / Azure Repos
   Pipeline: Validate -> Plan -> Apply (gated, main only)
         |
         v
-  Resource Group (rg-platformdemo-dev)
+  Resource Group (rg-arshaan-azure-lab-dev)
         |
         +-- Virtual Network (10.0.0.0/16)
         |      +-- Subnet: snet-app (10.0.1.0/24), NSG attached

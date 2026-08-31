@@ -1,4 +1,4 @@
-project_name        = "platformdemo"
+project_name        = "arshaan-azure-lab"
 location            = "uksouth"
 environment         = "dev"
 vnet_address_space  = ["10.0.0.0/16"]

@@ -1,7 +1,7 @@
 variable "project_name" {
   description = "Short name used as a prefix for resource naming"
   type        = string
-  default     = "platformdemo"
+  default     = "arshaan-azure-lab"
 }
 
 variable "location" {
