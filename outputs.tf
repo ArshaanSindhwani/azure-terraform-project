@@ -1,6 +1,6 @@
 output "resource_group_name" {
   description = "Name of the created resource group"
-  value       = data.azurerm_resource_group.main.name
+  value       = azurerm_resource_group.main.name
 }
 
 output "container_app_fqdn" {

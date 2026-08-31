@@ -7,14 +7,14 @@
 
 resource "azurerm_container_app_environment" "main" {
   name                = "cae-${var.project_name}-${var.environment}"
-  location            = data.azurerm_resource_group.main.location
-  resource_group_name = data.azurerm_resource_group.main.name
+  location            = azurerm_resource_group.main.location
+  resource_group_name = azurerm_resource_group.main.name
 }
 
 resource "azurerm_container_app" "main" {
   name                         = "app-${var.project_name}-${var.environment}"
   container_app_environment_id = azurerm_container_app_environment.main.id
-  resource_group_name          = data.azurerm_resource_group.main.name
+  resource_group_name          = azurerm_resource_group.main.name
   revision_mode                = "Single"
 
   # System assigned identity lets this app authenticate to other Azure
