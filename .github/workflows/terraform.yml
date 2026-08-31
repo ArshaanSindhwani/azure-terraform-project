@@ -23,6 +23,8 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+        # This checkout is what makes .terraform.lock.hcl available to every
+        # job below — the fix only works if that file is actually committed.
 
       - name: Setup Terraform
         uses: hashicorp/setup-terraform@v3
@@ -30,7 +32,7 @@ jobs:
           terraform_version: ${{ env.TF_VERSION }}
 
       - name: Terraform Init
-        run: terraform init -reconfigure
+        run: terraform init -reconfigure -input=false
 
       - name: Format check
         run: terraform fmt -check -recursive
@@ -54,10 +56,13 @@ jobs:
           terraform_version: ${{ env.TF_VERSION }}
 
       - name: Terraform Init
-        run: terraform init -reconfigure
+        run: terraform init -reconfigure -input=false
+        # Because .terraform.lock.hcl is committed and checked out above,
+        # this resolves the exact same provider versions every time —
+        # not "whatever's latest right now."
 
       - name: Terraform Plan
-        run: terraform plan -out=tfplan
+        run: terraform plan -input=false -out=tfplan
 
       - name: Upload Plan Artifact
         uses: actions/upload-artifact@v4
@@ -77,6 +82,8 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+        # Same committed lock file, same repo state -> same provider
+        # versions get resolved as in the Plan job above.
 
       - name: Setup Terraform
         uses: hashicorp/setup-terraform@v3
@@ -90,7 +97,7 @@ jobs:
           path: .
 
       - name: Terraform Init
-        run: terraform init -reconfigure
+        run: terraform init -reconfigure -input=false
 
       - name: Terraform Apply
-        run: terraform apply -auto-approve tfplan
+        run: terraform apply -input=false -auto-approve tfplan

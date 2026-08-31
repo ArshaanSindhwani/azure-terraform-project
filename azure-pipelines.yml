@@ -19,8 +19,13 @@ stages:
             inputs:
               terraformVersion: $(terraformVersion)
 
-          - script: terraform init -backend=false
+          - script: terraform init -backend=false -input=false
             displayName: Init without backend
+            # Azure DevOps checks this repo out automatically at the start
+            # of this job. Provider versions get resolved from whatever
+            # .terraform.lock.hcl is committed in the repo -- if that file
+            # isn't tracked in git, this silently writes a fresh local one
+            # instead of reusing a shared, pinned set of versions.
 
           - script: terraform fmt -check -recursive
             displayName: Check formatting
@@ -38,7 +43,7 @@ stages:
             inputs:
               terraformVersion: $(terraformVersion)
 
-          - script: terraform init
+          - script: terraform init -input=false
             displayName: Init with backend
             env:
               ARM_CLIENT_ID: $(ARM_CLIENT_ID)
@@ -46,7 +51,7 @@ stages:
               ARM_SUBSCRIPTION_ID: $(ARM_SUBSCRIPTION_ID)
               ARM_TENANT_ID: $(ARM_TENANT_ID)
 
-          - script: terraform plan -out=tfplan
+          - script: terraform plan -input=false -out=tfplan
             displayName: Generate plan
             env:
               ARM_CLIENT_ID: $(ARM_CLIENT_ID)
@@ -76,15 +81,19 @@ stages:
                 - download: current
                   artifact: tfplan
 
-                - script: terraform init
+                - script: terraform init -input=false
                   displayName: Init with backend
                   env:
                     ARM_CLIENT_ID: $(ARM_CLIENT_ID)
                     ARM_CLIENT_SECRET: $(ARM_CLIENT_SECRET)
                     ARM_SUBSCRIPTION_ID: $(ARM_SUBSCRIPTION_ID)
                     ARM_TENANT_ID: $(ARM_TENANT_ID)
+                  # This resolves provider versions from the same committed
+                  # .terraform.lock.hcl the Plan stage used. If that file is
+                  # tracked in git, this now matches exactly -- which is the
+                  # actual fix for the "no version is selected" error.
 
-                - script: terraform apply -auto-approve $(Pipeline.Workspace)/tfplan/tfplan
+                - script: terraform apply -input=false -auto-approve $(Pipeline.Workspace)/tfplan/tfplan
                   displayName: Apply
                   env:
                     ARM_CLIENT_ID: $(ARM_CLIENT_ID)
@@ -99,3 +108,6 @@ stages:
 #   by Key Vault, never committed to this file.
 # - The plan artifact is generated once in the Plan stage and reused in
 #   Apply, so what gets approved is exactly what gets applied.
+# - .terraform.lock.hcl must be committed to git -- it's the mechanism
+#   that keeps provider version selection identical across the three
+#   independently-checked-out stages above.
