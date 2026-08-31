@@ -9,8 +9,8 @@ resource "azurerm_storage_account" "main" {
   # letters and numbers only, no hyphens. substr() caps the length so
   # this stays valid regardless of how long project_name is.
   name                     = substr("st${replace(var.project_name, "-", "")}${random_string.storage_suffix.result}", 0, 24)
-  resource_group_name      = azurerm_resource_group.main.name
-  location                 = azurerm_resource_group.main.location
+  resource_group_name      = data.azurerm_resource_group.main.name
+  location                 = data.azurerm_resource_group.main.location
   account_tier             = "Standard"
   account_replication_type = "LRS"
   min_tls_version          = "TLS1_2"
