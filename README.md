@@ -65,6 +65,8 @@ The primary pipeline is [azure-pipelines.yml](azure-pipelines.yml). It runs when
 2. **Plan** initialises the Azure Storage backend, creates `tfplan`, and publishes it as a pipeline artefact.
 3. **Apply** runs only for `main`, downloads the saved artefact, reinitialises the backend, and applies that same plan.
 
+![Successful Azure DevOps pipeline run](docs/screenshots/azure-devops-pipeline-success.png)
+
 The apply job targets the Azure DevOps `production` environment. Approval checks can be configured on that environment in Azure DevOps if a manual release gate is required. Terraform runs with `-auto-approve` because the pipeline is applying the saved plan rather than prompting interactively.
 
 A GitHub Actions workflow is also included in [.github/workflows/terraform.yml](.github/workflows/terraform.yml) as an alternative implementation. It contains the same validate, plan, and apply pattern, with a pull request trigger. It receives its Azure credentials from repository secrets.
@@ -76,6 +78,10 @@ Terraform state is stored remotely in an Azure Storage container, configured in 
 Both CI/CD implementations authenticate with the standard `ARM_CLIENT_ID`, `ARM_CLIENT_SECRET`, `ARM_SUBSCRIPTION_ID`, and `ARM_TENANT_ID` values. In Azure DevOps, they are configured as secret pipeline variables. In GitHub Actions, they are stored as repository secrets and passed to Terraform as environment variables. The values are not committed to this repository.
 
 The Container App uses a system-assigned managed identity. Terraform grants that identity the least privilege needed for the intended storage integration: `Storage Blob Data Reader` on this project’s storage account. No storage access keys or connection strings are placed in the Container App configuration.
+
+![Container App overview](docs/screenshots/container-app-overview.png)
+
+![Storage RBAC assignment](docs/screenshots/storage-rbac-assignment.png)
 
 ## Prerequisites
 
