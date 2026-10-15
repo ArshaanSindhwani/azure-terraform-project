@@ -67,6 +67,8 @@ The primary pipeline is [azure-pipelines.yml](azure-pipelines.yml). It runs when
 
 ![Successful Azure DevOps pipeline run](docs/screenshots/azure-devops-pipeline-success.png)
 
+A verified historical run completed all three stages, Validate, Plan and Apply, in 1 minute 23 seconds. The Azure subscription has since expired, so the environment is no longer deployed.
+
 The apply job targets the Azure DevOps `production` environment. Approval checks can be configured on that environment in Azure DevOps if a manual release gate is required. Terraform runs with `-auto-approve` because the pipeline is applying the saved plan rather than prompting interactively.
 
 A GitHub Actions workflow is also included in [.github/workflows/terraform.yml](.github/workflows/terraform.yml) as an alternative implementation. It contains the same validate, plan, and apply pattern, with a pull request trigger. It receives its Azure credentials from repository secrets.
