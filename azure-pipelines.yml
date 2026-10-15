@@ -38,17 +38,6 @@ stages:
         steps:
           - checkout: self
 
-          # ✅ DEBUG STEP (ADDED)
-          - script: |
-              echo "--- Checking for lock file ---"
-              ls -la
-              if [ -f .terraform.lock.hcl ]; then
-                echo "Lock file found:"
-                cat .terraform.lock.hcl
-              else
-                echo "NO LOCK FILE PRESENT"
-              fi
-            displayName: Debug lock file
 
           - task: TerraformInstaller@1
             inputs:
@@ -91,17 +80,6 @@ stages:
               steps:
                 - checkout: self
 
-                # ✅ DEBUG STEP (ADDED)
-                - script: |
-                    echo "--- Checking for lock file ---"
-                    ls -la
-                    if [ -f .terraform.lock.hcl ]; then
-                      echo "Lock file found:"
-                      cat .terraform.lock.hcl
-                    else
-                      echo "NO LOCK FILE PRESENT"
-                    fi
-                  displayName: Debug lock file
 
                 - task: TerraformInstaller@1
                   inputs:
